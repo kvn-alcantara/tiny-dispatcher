@@ -9,12 +9,24 @@ type Broker struct {
 	queue chan job.Job
 }
 
-// Enqueue adds a job to the queue
-func (b *Broker) Enqueue(job job.Job) {
-	b.queue <- job
+// New creates a new Broker with the provided job queue
+func New(queue chan job.Job) *Broker {
+	return &Broker{
+		queue: queue,
+	}
 }
 
-// Next returns the next job from the queue
-func (b *Broker) Next() job.Job {
-	return <-b.queue
+// Enqueue adds a job to the queue
+func (b *Broker) Enqueue(j job.Job) {
+	b.queue <- j
+}
+
+// Next returns the next job from the queue.
+func (b *Broker) Next() (job.Job) {
+	select {
+	case j := <-b.queue:
+		return j
+	default:
+		return job.Job{}
+	}
 }
